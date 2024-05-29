@@ -127,72 +127,73 @@
         }
  
         async function fetchTasks(username) {
-    const { data, error } = await connection
-        .from('Checklist')
-        .select('*')
-        .eq('Name', username);
- 
-    if (error) {
-        console.error('Error:', error);
-        return;
-    }
- 
-    const taskList = document.getElementById('task-list');
-    taskList.innerHTML = ''; 
- 
-    data.forEach(task => {
-        if (task.datetask && task.time) {
-            const listItem = document.createElement('div');
-            listItem.classList.add('task-card');
-            listItem.dataset.taskId = task.id;
- 
-            const taskInfo = document.createElement('div');
-            taskInfo.classList.add('task-info');
-            taskInfo.innerHTML = `<span>${task.task}</span><span>Time: ${task.time}</span><span>Deadline: ${task.datetask}</span>`;
- 
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.classList.add('completed-checkbox');
-            checkbox.checked = task.completed;
- 
-            const deleteButton = document.createElement('button');
-            deleteButton.classList.add('delete-btn');
-            deleteButton.textContent = 'Delete';
-            deleteButton.onclick = () => deleteTask(task.id);
- 
-            listItem.appendChild(taskInfo);
-            listItem.appendChild(checkbox);
-            listItem.appendChild(deleteButton);
- 
-            taskList.appendChild(listItem);
+        const { data, error } = await connection
+            .from('Checklist')
+            .select('*')
+            .eq('Name', username);
+
+        if (error) {
+            console.error('Error:', error);
+            return;
         }
-    });
-}
+
+        const taskList = document.getElementById('task-list');
+        taskList.innerHTML = ''; 
+
+        data.forEach(task => {
+            if (task.datetask && task.time) {
+                const listItem = document.createElement('div');
+                listItem.classList.add('task-card');
+                listItem.dataset.taskId = task.id;
+
+                const taskInfo = document.createElement('div');
+                taskInfo.classList.add('task-info');
+                taskInfo.innerHTML = `<span class="bold-task">${task.task}</span><span>Time: ${task.time}</span><span>Deadline:<span>Deadline: ${task.datetask}</span>`;
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.classList.add('completed-checkbox');
+                checkbox.checked = task.completed;
+                checkbox.addEventListener('change', () => toggleTaskCompletion(task.id, checkbox.checked));
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteTask(task.id);
+
+                listItem.appendChild(taskInfo);
+                listItem.appendChild(checkbox);
+                listItem.appendChild(deleteButton);
+
+                taskList.appendChild(listItem);
+            }
+        });
+    }
  
         async function addTask() {
-    const username = document.getElementById("account-username").textContent.replace('Hello, ', '');
-    const taskInput = document.getElementById("task-input").value;
-    const taskTime = document.getElementById("task-time").value;
-    const taskDate = document.getElementById("task-date").value;
-    const password = document.getElementById("login-password").value;
+        const username = document.getElementById("account-username").textContent.replace('Hello, ', '');
+        const taskInput = document.getElementById("task-input").value;
+        const taskTime = document.getElementById("task-time").value;
+        const taskDate = document.getElementById("task-date").value;
+        const password = document.getElementById("login-password").value;
  
-    if (!taskInput.trim() || !taskDate.trim() || !taskTime.trim()) {
-        alert("Please fill out all fields.");
-        return;
-    }
+            if (!taskInput.trim() || !taskDate.trim() || !taskTime.trim()) {
+            alert("Please fill out all fields.");
+            return;
+        }
  
-    const { data, error } = await connection
+        const { data, error } = await connection
         .from('Checklist')
         .insert([{ Name: username, task: taskInput, datetask: taskDate, password: password, time: taskTime }], { returning: 'minimal' });
  
-    if (error) {
-        console.error('Error:', error);
-        alert('Failed to add task.');
-    } else {
-        console.log('Task added successfully:', data);
-        fetchTasks(username);
+            if (error) {
+            console.error('Error:', error);
+            alert('Failed to add task.');
+            } else {
+            console.log('Task added successfully:', data);
+            fetchTasks(username);
+        }
     }
-}
  
  
         async function deleteTask(taskId) {
