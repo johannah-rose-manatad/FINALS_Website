@@ -125,50 +125,60 @@
                 alert("Invalid username or password.");
             }
         }
- 
-        async function fetchTasks(username) {
-        const { data, error } = await connection
-            .from('Checklist')
-            .select('*')
-            .eq('Name', username);
-
-        if (error) {
-            console.error('Error:', error);
-            return;
+        
+        function convertTo12Hour(time) {
+        const [hour, minute] = time.split(':');
+        const hourInt = parseInt(hour, 10);
+        const ampm = hourInt >= 12 ? 'PM' : 'AM';
+        const hour12 = hourInt % 12 || 12;  // Converts '0' to '12' for midnight.
+        return `${hour12}:${minute} ${ampm}`;
         }
 
-        const taskList = document.getElementById('task-list');
-        taskList.innerHTML = ''; 
+        async function fetchTasks(username) {
+    const { data, error } = await connection
+        .from('Checklist')
+        .select('*')
+        .eq('Name', username);
 
-        data.forEach(task => {
-            if (task.datetask && task.time) {
-                const listItem = document.createElement('div');
-                listItem.classList.add('task-card');
-                listItem.dataset.taskId = task.id;
-
-                const taskInfo = document.createElement('div');
-                taskInfo.classList.add('task-info');
-                taskInfo.innerHTML = `<span class="bold-task">${task.task}</span><span>Time: ${task.time}</span><span>Deadline:<span>Deadline: ${task.datetask}</span>`;
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.classList.add('completed-checkbox');
-                checkbox.checked = task.completed;
-                checkbox.addEventListener('change', () => toggleTaskCompletion(task.id, checkbox.checked));
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('delete-btn');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => deleteTask(task.id);
-
-                listItem.appendChild(taskInfo);
-                listItem.appendChild(checkbox);
-                listItem.appendChild(deleteButton);
-
-                taskList.appendChild(listItem);
-            }
-        });
+    if (error) {
+        console.error('Error:', error);
+        return;
     }
+
+    const taskList = document.getElementById('task-list');
+    taskList.innerHTML = ''; 
+
+    data.forEach(task => {
+        if (task.datetask && task.time) {
+            const listItem = document.createElement('div');
+            listItem.classList.add('task-card');
+            listItem.dataset.taskId = task.id;
+
+            const taskInfo = document.createElement('div');
+            taskInfo.classList.add('task-info');
+            const formattedTime = convertTo12Hour(task.time);
+            taskInfo.innerHTML = `<span class="bold-task">${task.task}</span><span>Time: ${formattedTime}</span><span>Deadline: ${task.datetask}</span>`;
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.classList.add('completed-checkbox');
+            checkbox.checked = task.completed;
+            checkbox.addEventListener('change', () => toggleTaskCompletion(task.id, checkbox.checked));
+
+            const deleteButton = document.createElement('button');
+            deleteButton.classList.add('delete-btn');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteTask(task.id);
+
+            listItem.appendChild(taskInfo);
+            listItem.appendChild(checkbox);
+            listItem.appendChild(deleteButton);
+
+            taskList.appendChild(listItem);
+        }
+    });
+}
+
  
         async function addTask() {
         const username = document.getElementById("account-username").textContent.replace('Hello, ', '');
